@@ -9,12 +9,23 @@ import { cn } from '@/lib/cn';
  * organisation. Hiding a link is presentation only — the pages themselves enforce
  * the boundary, because a hidden link stops nobody who can type a URL.
  */
-const navItems: { href: string; label: string; internalOnly?: boolean; adminOnly?: boolean }[] = [
-  { href: '/admin', label: 'Today' },
-  { href: '/admin/pipeline', label: 'Consultation pipeline', internalOnly: true },
-  { href: '/admin/enquiries', label: 'Enquiry triage' },
-  { href: '/admin/companies', label: 'Companies' },
-  { href: '/admin/content', label: 'Site content', adminOnly: true },
+const navItems: {
+  href: string;
+  label: string;
+  hint: string;
+  internalOnly?: boolean;
+  adminOnly?: boolean;
+}[] = [
+  { href: '/admin', label: 'Today', hint: 'What needs doing first' },
+  {
+    href: '/admin/pipeline',
+    label: 'Client journeys',
+    hint: 'Providers becoming clients',
+    internalOnly: true,
+  },
+  { href: '/admin/enquiries', label: 'Wellbeing cases', hint: 'Concerns about staff members' },
+  { href: '/admin/companies', label: 'Clients', hint: 'Organisations we work with' },
+  { href: '/admin/content', label: 'Site content', hint: 'The public website', adminOnly: true },
 ];
 
 export function AdminShell({
@@ -55,9 +66,16 @@ export function AdminShell({
                   <Link
                     key={item.href}
                     href={href}
-                    className="block rounded-lg px-3 py-2 text-sm font-medium text-ink-soft transition hover:bg-violet-50 hover:text-ink"
+                    className="block rounded-lg px-3 py-2.5 transition hover:bg-violet-50"
                   >
-                    {item.label}
+                    <span className="block text-sm font-semibold text-ink">{item.label}</span>
+                    {/* "Client journeys" and "Wellbeing cases" are the two things new
+                        staff confuse, because one is a provider becoming a client and
+                        the other is a concern about an individual member of staff.
+                        One line each removes the need to explain it. */}
+                    <span className="mt-0.5 block text-xs leading-snug text-ink-muted">
+                      {item.hint}
+                    </span>
                   </Link>
                 );
               })}

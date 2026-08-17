@@ -234,7 +234,12 @@ export default async function ReportDetailPage({ params, searchParams }: PagePro
             </div>
           ) : (
             <div className="mt-4">
-              <ActionForm action={reviewReportAction} submitLabel="Mark as reviewed">
+              <ActionForm
+                action={reviewReportAction}
+                submitLabel="Mark as reviewed"
+                consequence="Saves your notes against this report, records you as the reviewer, and moves the client to Report reviewed so the follow-up call shows on the worklist."
+                requireConfirm
+              >
                 <input type="hidden" name="reportId" value={report.id} />
                 <AdminField
                   label="Your reading of this report"

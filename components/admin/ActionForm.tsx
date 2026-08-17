@@ -1,7 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { useActionState } from 'react';
+import { useActionState, useState } from 'react';
 import { useFormStatus } from 'react-dom';
 import type { ActionState } from '@/app/admin/actions';
 import { Button } from '@/components/ui/Button';
@@ -23,20 +23,74 @@ export function ActionForm({
   children,
   className,
   variant = 'primary',
+  consequence,
+  requireConfirm = false,
 }: {
   action: (prev: ActionState, formData: FormData) => Promise<ActionState>;
   submitLabel: string;
   children: ReactNode;
   className?: string;
   variant?: 'primary' | 'secondary';
+  /**
+   * Plain-language description of what pressing the button will do, shown before
+   * it is pressed. A novice admin should never have to click something to find out
+   * what it does.
+   */
+  consequence?: string;
+  /**
+   * Adds a confirm step. Use only for actions that cannot be undone — marking a
+   * report reviewed, logging a call as completed. Putting this on everything just
+   * trains people to click through it.
+   */
+  requireConfirm?: boolean;
 }) {
   const [state, formAction] = useActionState<ActionState, FormData>(action, {});
+  const [confirming, setConfirming] = useState(false);
+
+  // Any successful action resets the confirm step, so a second edit starts clean.
+  if (state.ok && confirming) setConfirming(false);
 
   return (
     <form action={formAction} className={cn('flex flex-col gap-3', className)}>
       {children}
 
-      <Submit label={submitLabel} variant={variant} />
+      {consequence ? (
+        <p className="flex items-start gap-2 rounded-lg bg-violet-50 px-3 py-2.5 text-[0.8125rem] leading-relaxed text-ink-soft">
+          <span
+            aria-hidden="true"
+            className="mt-1.5 size-1.5 shrink-0 rounded-full bg-violet-600"
+          />
+          {consequence}
+        </p>
+      ) : null}
+
+      {requireConfirm && !confirming ? (
+        <Button
+          type="button"
+          size="md"
+          variant={variant}
+          className="self-start"
+          onClick={() => setConfirming(true)}
+        >
+          {submitLabel}
+        </Button>
+      ) : requireConfirm ? (
+        <div className="flex flex-wrap items-center gap-3 rounded-lg border border-amber-600/30 bg-amber-100 px-3 py-2.5">
+          <p className="text-[0.8125rem] font-medium text-amber-800">
+            This cannot be undone. Go ahead?
+          </p>
+          <Submit label={`Yes — ${submitLabel.toLowerCase()}`} variant={variant} />
+          <button
+            type="button"
+            onClick={() => setConfirming(false)}
+            className="text-[0.8125rem] font-semibold text-ink-soft underline underline-offset-4"
+          >
+            Cancel
+          </button>
+        </div>
+      ) : (
+        <Submit label={submitLabel} variant={variant} />
+      )}
 
       {state.error ? (
         <p

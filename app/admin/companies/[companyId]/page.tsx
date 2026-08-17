@@ -255,7 +255,9 @@ export default async function CompanyWorkspacePage({ params, searchParams }: Pag
             <div className="mt-3 flex flex-wrap gap-2">
               {engagementStages().map((stageName) => {
                 const active = stageName === engagement.stage;
-                const passed = stageProgress(stageName as typeof engagement.stage) <= stageProgress(engagement.stage);
+                const passed =
+                  stageProgress(stageName as typeof engagement.stage) <=
+                  stageProgress(engagement.stage);
                 return (
                   <span
                     key={stageName}
@@ -309,7 +311,8 @@ export default async function CompanyWorkspacePage({ params, searchParams }: Pag
             },
             {
               term: 'Consultation / lead',
-              definition: 'A care provider moving through the sales journey towards becoming a client.',
+              definition:
+                'A care provider moving through the sales journey towards becoming a client.',
             },
             {
               term: 'Company',
@@ -578,7 +581,11 @@ export default async function CompanyWorkspacePage({ params, searchParams }: Pag
             </p>
 
             <div className="mt-4">
-              <ActionForm action={logConsultantCall} submitLabel="Save call record">
+              <ActionForm
+                action={logConsultantCall}
+                submitLabel="Save call record"
+                consequence="Saving with the status set to Completed also moves this client to Follow-up completed, so the call stops appearing on the worklist."
+              >
                 <input type="hidden" name="companyId" value={companyId} />
 
                 <AdminField label="Consultant" htmlFor="call-consultant">
@@ -806,7 +813,11 @@ export default async function CompanyWorkspacePage({ params, searchParams }: Pag
           </p>
 
           <div className="mt-4">
-            <ActionForm action={createCompanyNote} submitLabel="Add note">
+            <ActionForm
+              action={createCompanyNote}
+              submitLabel="Add note"
+              consequence="Notes cannot be edited or deleted once saved. Write it as you would want it read back later."
+            >
               <input type="hidden" name="companyId" value={companyId} />
               <AdminField label="New note" htmlFor="company-note">
                 <textarea

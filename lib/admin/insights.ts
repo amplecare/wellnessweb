@@ -551,3 +551,122 @@ export function engagementForCompany(companyId: string) {
 export function consultants(): string[] {
   return [...new Set(listCompanies().map((c) => c.accountOwner))].sort();
 }
+
+/* --------------------------------------------------------------------------- *
+ * The task list.
+ * --------------------------------------------------------------------------- */
+
+export type TaskUrgency = 'overdue' | 'today' | 'soon';
+
+export interface AdminTask {
+  id: string;
+  /** What to do, as an instruction. Never a noun phrase like "Report review". */
+  action: string;
+  /** Why it is on the list, in one line. */
+  because: string;
+  href: string;
+  urgency: TaskUrgency;
+  /** Lower sorts first. */
+  weight: number;
+}
+
+/**
+ * What needs doing, in the order it should be done.
+ *
+ * The overview previously opened with nine KPI cards. A number tells an experienced
+ * manager how things are going; it tells someone new nothing about what to do next,
+ * and "9 unresolved" is not an instruction. This builds an actual worklist so a new
+ * admin can work a whole day from one screen without being trained first.
+ *
+ * Order is deliberate: a person waiting on us outranks an internal task, and anything
+ * already overdue outranks anything merely due.
+ */
+export function buildTaskList(role: UserRole, requestedCompanyId?: string): AdminTask[] {
+  const tasks: AdminTask[] = [];
+
+  // 1. Leads that have gone past their follow-up date. A provider is waiting.
+  for (const lead of leadsNeedingAction(role)) {
+    const days = lead.nextActionAt ? Math.abs(daysUntil(lead.nextActionAt)) : 0;
+    tasks.push({
+      id: `lead-${lead.id}`,
+      action: lead.nextAction || `Follow up with ${lead.organisationName}`,
+      because:
+        days === 0
+          ? `${lead.organisationName} — due today`
+          : `${lead.organisationName} — ${days} day${days === 1 ? '' : 's'} overdue`,
+      href: `/admin/pipeline/${lead.id}`,
+      urgency: days > 0 ? 'overdue' : 'today',
+      weight: days > 0 ? 0 : 10,
+    });
+  }
+
+  // 2. Reports generated but not yet read by a consultant. Nothing moves until this
+  //    happens, and the client is expecting a call about it.
+  for (const report of reportsAwaitingReview(role, requestedCompanyId)) {
+    const company = companyById(report.companyId);
+    tasks.push({
+      id: `report-${report.id}`,
+      action: `Review the ${report.periodLabel} report`,
+      because: `${company?.name ?? report.companyId} — ready, not yet reviewed`,
+      href: `/admin/reports/${report.id}`,
+      urgency: 'today',
+      weight: 20,
+    });
+  }
+
+  // 3. Reviewed reports with no completed call. The report is useless until someone
+  //    talks the provider through it.
+  for (const { company } of companiesAwaitingCall(role, requestedCompanyId)) {
+    tasks.push({
+      id: `call-${company.id}`,
+      action: `Call ${company.name} about their report`,
+      because: 'Report reviewed — the client has not been talked through it yet',
+      href: `/admin/companies/${company.id}?tab=followup`,
+      urgency: 'today',
+      weight: 30,
+    });
+  }
+
+  // 4. Surveys too thinly answered to draw conclusions from.
+  for (const { company, progress } of companiesWithLowParticipation(role, requestedCompanyId)) {
+    tasks.push({
+      id: `survey-${company.id}`,
+      action: `Chase survey participation at ${company.name}`,
+      because: `Only ${progress.rate}% have responded — below the 40% needed to generalise`,
+      href: `/admin/companies/${company.id}?tab=survey`,
+      urgency: 'soon',
+      weight: 40,
+    });
+  }
+
+  // 5. Critical and high wellbeing cases still open.
+  for (const enquiry of filterEnquiries(role, requestedCompanyId, {
+    urgency: 'critical',
+    view: 'open',
+  })) {
+    const company = companyById(enquiry.companyId);
+    tasks.push({
+      id: `case-${enquiry.id}`,
+      action: `Act on a critical case at ${company?.name ?? enquiry.companyId}`,
+      because: `${toTitleCase(enquiry.concernType)} — risk ${enquiry.riskScore}%`,
+      href: `/admin/enquiries/${enquiry.id}`,
+      urgency: 'overdue',
+      weight: 5,
+    });
+  }
+
+  // 6. New consultation requests nobody has contacted yet.
+  for (const lead of getScopedConsultations(role).filter((l) => l.stage === 'new_enquiry')) {
+    if (tasks.some((t) => t.id === `lead-${lead.id}`)) continue;
+    tasks.push({
+      id: `new-${lead.id}`,
+      action: `Call ${lead.organisationName} to book their consultation`,
+      because: 'New request — nobody has contacted them yet',
+      href: `/admin/pipeline/${lead.id}`,
+      urgency: 'today',
+      weight: 15,
+    });
+  }
+
+  return tasks.sort((a, b) => a.weight - b.weight || a.action.localeCompare(b.action));
+}

@@ -136,7 +136,11 @@ export default async function EnquiryDetailPage({ params, searchParams }: PagePr
           </p>
 
           <div className="mt-4">
-            <ActionForm action={changeEnquiryStatus} submitLabel="Update status">
+            <ActionForm
+              action={changeEnquiryStatus}
+              submitLabel="Update status"
+              consequence="Recorded against the case with your name and the time, and visible in the history below."
+            >
               <input type="hidden" name="enquiryId" value={enquiry.id} />
               <AdminField label="Change status" htmlFor="enq-status">
                 <select
@@ -215,7 +219,11 @@ export default async function EnquiryDetailPage({ params, searchParams }: PagePr
           </p>
 
           <div className="mt-4">
-            <ActionForm action={createEnquiryNote} submitLabel="Add note">
+            <ActionForm
+              action={createEnquiryNote}
+              submitLabel="Add note"
+              consequence="Notes cannot be edited or deleted once saved. Write it as you would want it read back later."
+            >
               <input type="hidden" name="enquiryId" value={enquiry.id} />
               <AdminField label="New note" htmlFor="enq-note">
                 <textarea

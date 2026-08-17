@@ -7,6 +7,7 @@ import { TrendBars } from '@/components/admin/TrendBars';
 import { Card } from '@/components/ui/Card';
 import {
   atRiskCompanies,
+  buildTaskList,
   companiesAwaitingCall,
   concernTrends,
   daysUntil,
@@ -81,6 +82,8 @@ export default async function AdminDashboardPage({ searchParams }: PageProps) {
   };
   const riskCompanies = atRiskCompanies(role, requestedCompanyId).slice(0, 4);
 
+  const tasks = buildTaskList(role, requestedCompanyId);
+
   const recentActivity = listActivity()
     .filter((item) => (companyId ? item.companyId === companyId : true))
     .sort((a, b) => b.at.localeCompare(a.at))
@@ -93,36 +96,94 @@ export default async function AdminDashboardPage({ searchParams }: PageProps) {
       title="Today"
       description="Work the queue in order: urgent cases, booked calls, unresolved reports and anything else that needs action first."
     >
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-        <KpiCard
-          label="Companies"
-          value={stats.companies}
-          helper="Scoped to your permission level"
-        />
-        <KpiCard label="Employees" value={stats.employees} helper="Linked workforce records" />
-        <KpiCard
-          label="Total enquiries"
-          value={stats.enquiries}
-          helper="All submitted wellbeing enquiries"
-        />
-        <KpiCard label="Active surveys" value={survey.active} helper="Sent/open/in progress" />
-        <KpiCard label="Completed surveys" value={survey.completed} helper="Ready for analysis" />
-        <KpiCard
-          label="Ready reports"
-          value={reportStatus.ready}
-          helper="Generated for consultant review"
-        />
-        <KpiCard label="Urgent cases" value={stats.urgent} helper="High or critical urgency" />
-        <KpiCard
-          label="Unresolved"
-          value={stats.unresolved}
-          helper="Needs triage, action or closure"
-        />
-        <KpiCard
-          label="Average risk"
-          value={`${stats.avgRisk}%`}
-          helper="Computed from enquiry signals"
-        />
+      {/*
+        The worklist comes first.
+
+        This screen used to open with nine KPI cards. A number tells an experienced
+        manager how things are going; it tells someone new nothing about what to do,
+        and "9 unresolved" is not an instruction. Tasks now lead, numbers follow.
+      */}
+      <section aria-labelledby="worklist-heading">
+        <div className="flex flex-wrap items-baseline justify-between gap-3">
+          <h2 id="worklist-heading" className="text-display-md text-ink">
+            What needs doing
+          </h2>
+          <p className="text-sm text-ink-muted">
+            {tasks.length === 0
+              ? 'Nothing outstanding'
+              : `${tasks.length} item${tasks.length === 1 ? '' : 's'}, most urgent first`}
+          </p>
+        </div>
+
+        {tasks.length === 0 ? (
+          <div className="mt-4 rounded-lg border border-line bg-white p-8 text-center">
+            <p className="text-display-md text-ink">You are up to date.</p>
+            <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-ink-soft">
+              No overdue follow-ups, no reports waiting on review, and no calls outstanding. This is
+              what a good day looks like — not a broken page.
+            </p>
+          </div>
+        ) : (
+          <ol className="mt-4 divide-y divide-line overflow-hidden rounded-lg border border-line bg-white">
+            {tasks.slice(0, 12).map((task) => (
+              <li key={task.id}>
+                <Link
+                  href={task.href}
+                  className="flex items-center gap-4 px-4 py-4 transition-colors hover:bg-violet-50 sm:px-5"
+                >
+                  <span
+                    aria-hidden="true"
+                    className={
+                      task.urgency === 'overdue'
+                        ? 'mt-1 size-2 shrink-0 self-start rounded-full bg-rose-600'
+                        : task.urgency === 'today'
+                          ? 'mt-1 size-2 shrink-0 self-start rounded-full bg-amber-600'
+                          : 'mt-1 size-2 shrink-0 self-start rounded-full bg-violet-400'
+                    }
+                  />
+                  <span className="min-w-0 flex-1">
+                    <span className="block font-semibold text-ink">{task.action}</span>
+                    <span className="mt-0.5 block text-sm text-ink-soft">{task.because}</span>
+                  </span>
+                  <span
+                    aria-hidden="true"
+                    className="shrink-0 text-sm font-semibold text-violet-700"
+                  >
+                    Open
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ol>
+        )}
+
+        {tasks.length > 12 ? (
+          <p className="mt-3 text-sm text-ink-muted">
+            Showing the first 12 of {tasks.length}. Clear these and the rest will surface.
+          </p>
+        ) : null}
+      </section>
+
+      {/* The numbers, demoted. Useful for a manager scanning the state of the
+          business; useless as a starting point for someone new. */}
+      <section aria-labelledby="numbers-heading">
+        <h2 id="numbers-heading" className="sr-only">
+          At a glance
+        </h2>
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <KpiCard label="Clients" value={stats.companies} helper="Active organisations" />
+          <KpiCard label="Open cases" value={stats.unresolved} helper="Not yet resolved" />
+          <KpiCard
+            label="Surveys running"
+            value={survey.active}
+            helper="Awaiting staff responses"
+          />
+          <KpiCard
+            label="Reports ready"
+            value={reportStatus.ready}
+            helper="For consultant review"
+          />
+        </div>
       </section>
 
       <section className="grid gap-4 xl:grid-cols-3">

@@ -193,7 +193,11 @@ export default async function EnquiriesPage({ searchParams }: PageProps) {
             </button>
             {hasFilters || filters.view !== 'open' ? (
               <Link
-                href={requestedCompanyId ? `/admin/enquiries?company=${requestedCompanyId}` : '/admin/enquiries'}
+                href={
+                  requestedCompanyId
+                    ? `/admin/enquiries?company=${requestedCompanyId}`
+                    : '/admin/enquiries'
+                }
                 className="text-sm font-semibold text-violet-700 underline decoration-violet-300 underline-offset-4"
               >
                 Clear filters
