@@ -23,7 +23,7 @@ import {
   toTitleCase,
 } from '@/lib/admin/insights';
 import { readRole } from '@/lib/admin/query';
-import { getConsultationEvents } from '@/lib/admin/store';
+import { getConsultationEvents, loadWorkspace } from '@/lib/admin/store';
 import { stageTone } from '@/lib/admin/tone';
 
 export const metadata: Metadata = {
@@ -37,6 +37,9 @@ type PageProps = {
 };
 
 export default async function ConsultationDetailPage({ params, searchParams }: PageProps) {
+  // Postgres is the source of truth; nothing renders from memory.
+  await loadWorkspace();
+
   const { consultationId } = await params;
   const query = await searchParams;
   const role = readRole();

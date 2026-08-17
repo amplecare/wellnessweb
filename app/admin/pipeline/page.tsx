@@ -19,6 +19,7 @@ import {
   toTitleCase,
 } from '@/lib/admin/insights';
 import { readRole } from '@/lib/admin/query';
+import { loadWorkspace } from '@/lib/admin/store';
 import { stageTone } from '@/lib/admin/tone';
 import type { Consultation, EngagementStage, UserRole } from '@/lib/admin/types';
 
@@ -50,6 +51,9 @@ const stageHelp: Record<EngagementStage, string> = {
 };
 
 export default async function PipelinePage({ searchParams }: PageProps) {
+  // Postgres is the source of truth; nothing renders from memory.
+  await loadWorkspace();
+
   const query = await searchParams;
   const role = readRole();
   const focus: PipelineFocus =

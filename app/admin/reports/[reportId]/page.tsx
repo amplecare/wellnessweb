@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { companyById, formatDateTime, reportById, toTitleCase } from '@/lib/admin/insights';
 import { readCompany, readRole } from '@/lib/admin/query';
+import { loadWorkspace } from '@/lib/admin/store';
 
 export const metadata: Metadata = {
   title: 'Client Report',
@@ -23,6 +24,9 @@ type PageProps = {
 };
 
 export default async function ReportDetailPage({ params, searchParams }: PageProps) {
+  // Postgres is the source of truth; nothing renders from memory.
+  await loadWorkspace();
+
   const { reportId } = await params;
   const query = await searchParams;
 

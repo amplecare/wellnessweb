@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/Card';
 import { contentModules } from '@/content/admin/contentModules';
 import { toTitleCase } from '@/lib/admin/insights';
 import { readRole } from '@/lib/admin/query';
+import { loadWorkspace } from '@/lib/admin/store';
 import type { ContentModuleStatus } from '@/lib/admin/types';
 
 export const metadata: Metadata = {
@@ -40,6 +41,9 @@ const statusLabel: Record<ContentModuleStatus, string> = {
  * as the pre-launch content checklist.
  */
 export default async function ContentPage({ searchParams }: PageProps) {
+  // Postgres is the source of truth; nothing renders from memory.
+  await loadWorkspace();
+
   const query = await searchParams;
   const role = readRole();
 

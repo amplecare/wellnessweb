@@ -19,7 +19,7 @@ import {
   toTitleCase,
 } from '@/lib/admin/insights';
 import { readCompany, readRole } from '@/lib/admin/query';
-import { getEnquiryNotes } from '@/lib/admin/store';
+import { getEnquiryNotes, loadWorkspace } from '@/lib/admin/store';
 import { enquiryStatusTone, urgencyTone } from '@/lib/admin/tone';
 
 export const metadata: Metadata = {
@@ -33,6 +33,9 @@ type PageProps = {
 };
 
 export default async function EnquiryDetailPage({ params, searchParams }: PageProps) {
+  // Postgres is the source of truth; nothing renders from memory.
+  await loadWorkspace();
+
   const { enquiryId } = await params;
   const query = await searchParams;
 

@@ -18,6 +18,7 @@ import {
   toTitleCase,
 } from '@/lib/admin/insights';
 import { readCompany, readRole } from '@/lib/admin/query';
+import { loadWorkspace } from '@/lib/admin/store';
 import { enquiryStatusTone, urgencyTone } from '@/lib/admin/tone';
 import type { ConcernType, UrgencyLevel } from '@/lib/admin/types';
 
@@ -53,6 +54,9 @@ const read = (value: string | string[] | undefined): string | undefined =>
  * — which is why it is ordered by urgency and risk rather than by company.
  */
 export default async function EnquiriesPage({ searchParams }: PageProps) {
+  // Postgres is the source of truth; nothing renders from memory.
+  await loadWorkspace();
+
   const query = await searchParams;
   const role = readRole();
   const requestedCompanyId = readCompany(read(query.company));

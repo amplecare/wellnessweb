@@ -26,7 +26,7 @@ import {
 } from '@/lib/admin/insights';
 // Activity comes from the store, not the seed module, so entries written by
 // workflow actions show up here immediately.
-import { listActivity } from '@/lib/admin/store';
+import { listActivity, loadWorkspace } from '@/lib/admin/store';
 import { companyTone, urgencyTone } from '@/lib/admin/tone';
 import { readCompany, readRole } from '@/lib/admin/query';
 
@@ -41,6 +41,9 @@ type PageProps = {
 };
 
 export default async function AdminDashboardPage({ searchParams }: PageProps) {
+  // Postgres is the source of truth; nothing renders from memory.
+  await loadWorkspace();
+
   const query = await searchParams;
   const role = readRole();
   const requestedCompanyId = readCompany(

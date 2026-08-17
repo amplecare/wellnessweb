@@ -29,6 +29,7 @@ import {
   toTitleCase,
 } from '@/lib/admin/insights';
 import { readRole } from '@/lib/admin/query';
+import { loadWorkspace } from '@/lib/admin/store';
 import { callTone, stageTone, surveyTone } from '@/lib/admin/tone';
 
 export const metadata: Metadata = {
@@ -66,6 +67,9 @@ type PageProps = {
 };
 
 export default async function CompanyWorkspacePage({ params, searchParams }: PageProps) {
+  // Postgres is the source of truth; nothing renders from memory.
+  await loadWorkspace();
+
   const { companyId } = await params;
   const query = await searchParams;
   const role = readRole();

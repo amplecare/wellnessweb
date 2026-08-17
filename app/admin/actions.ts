@@ -13,6 +13,7 @@ import {
   updateConsultationCallAt,
   updateConsultationStage,
   updateEnquiryStatus,
+  loadWorkspace,
 } from '@/lib/admin/store';
 import { statusOptions, engagementStages } from '@/lib/admin/insights';
 import type {
@@ -50,13 +51,14 @@ export async function changeEnquiryStatus(
   _prev: ActionState,
   formData: FormData
 ): Promise<ActionState> {
+  await loadWorkspace();
   const enquiryId = String(formData.get('enquiryId') ?? '');
   const status = String(formData.get('status') ?? '');
 
   if (!enquiryId) return { error: 'Missing enquiry reference.' };
   if (!isEnquiryStatus(status)) return { error: 'That is not a valid status.' };
 
-  const updated = updateEnquiryStatus(enquiryId, status, await currentActorName());
+  const updated = await updateEnquiryStatus(enquiryId, status, await currentActorName());
   if (!updated) return { error: 'That enquiry no longer exists.' };
 
   revalidatePath(`/admin/enquiries/${enquiryId}`);
@@ -70,6 +72,7 @@ export async function reassignEnquiry(
   _prev: ActionState,
   formData: FormData
 ): Promise<ActionState> {
+  await loadWorkspace();
   const enquiryId = String(formData.get('enquiryId') ?? '');
   const assignee = String(formData.get('assignee') ?? '').trim();
 
@@ -77,7 +80,7 @@ export async function reassignEnquiry(
   if (!assignee) return { error: 'Choose who should own this case.' };
   if (assignee.length > 80) return { error: 'That name is too long.' };
 
-  const updated = assignEnquiry(enquiryId, assignee, await currentActorName());
+  const updated = await assignEnquiry(enquiryId, assignee, await currentActorName());
   if (!updated) return { error: 'That enquiry no longer exists.' };
 
   revalidatePath(`/admin/enquiries/${enquiryId}`);
@@ -90,6 +93,7 @@ export async function createEnquiryNote(
   _prev: ActionState,
   formData: FormData
 ): Promise<ActionState> {
+  await loadWorkspace();
   const enquiryId = String(formData.get('enquiryId') ?? '');
   const content = String(formData.get('content') ?? '').trim();
 
@@ -97,7 +101,7 @@ export async function createEnquiryNote(
   if (!content) return { error: 'Write a note before saving.' };
   if (content.length > 4000) return { error: 'Notes are limited to 4000 characters.' };
 
-  const note = addEnquiryNote(enquiryId, content, await currentActorName());
+  const note = await addEnquiryNote(enquiryId, content, await currentActorName());
   if (!note) return { error: 'That enquiry no longer exists.' };
 
   revalidatePath(`/admin/enquiries/${enquiryId}`);
@@ -109,6 +113,7 @@ export async function createCompanyNote(
   _prev: ActionState,
   formData: FormData
 ): Promise<ActionState> {
+  await loadWorkspace();
   const companyId = String(formData.get('companyId') ?? '');
   const content = String(formData.get('content') ?? '').trim();
 
@@ -116,7 +121,7 @@ export async function createCompanyNote(
   if (!content) return { error: 'Write a note before saving.' };
   if (content.length > 4000) return { error: 'Notes are limited to 4000 characters.' };
 
-  const note = addCompanyNote(companyId, content, await currentActorName());
+  const note = await addCompanyNote(companyId, content, await currentActorName());
   if (!note) return { error: 'That company no longer exists.' };
 
   revalidatePath(`/admin/companies/${companyId}`);
@@ -128,6 +133,7 @@ export async function changeLeadStage(
   _prev: ActionState,
   formData: FormData
 ): Promise<ActionState> {
+  await loadWorkspace();
   const consultationId = String(formData.get('consultationId') ?? '');
   const stage = String(formData.get('stage') ?? '');
   const detail = String(formData.get('detail') ?? '').trim();
@@ -136,7 +142,7 @@ export async function changeLeadStage(
   if (!isLeadStage(stage)) return { error: 'That is not a valid pipeline stage.' };
   if (detail.length > 2000) return { error: 'That note is too long.' };
 
-  const updated = updateConsultationStage(consultationId, stage, await currentActorName(), detail);
+  const updated = await updateConsultationStage(consultationId, stage, await currentActorName(), detail);
   if (!updated) return { error: 'That lead no longer exists.' };
 
   revalidatePath(`/admin/pipeline/${consultationId}`);
@@ -150,6 +156,7 @@ export async function setLeadNextAction(
   _prev: ActionState,
   formData: FormData
 ): Promise<ActionState> {
+  await loadWorkspace();
   const consultationId = String(formData.get('consultationId') ?? '');
   const nextAction = String(formData.get('nextAction') ?? '').trim();
   const rawDate = String(formData.get('nextActionAt') ?? '').trim();
@@ -164,7 +171,7 @@ export async function setLeadNextAction(
     nextActionAt = parsed.toISOString();
   }
 
-  const updated = updateConsultationNextAction(
+  const updated = await updateConsultationNextAction(
     consultationId,
     nextAction,
     nextActionAt,
@@ -182,6 +189,7 @@ export async function setLeadConsultationCall(
   _prev: ActionState,
   formData: FormData
 ): Promise<ActionState> {
+  await loadWorkspace();
   const consultationId = String(formData.get('consultationId') ?? '');
   const rawDate = String(formData.get('consultationAt') ?? '').trim();
 
@@ -194,7 +202,7 @@ export async function setLeadConsultationCall(
     consultationAt = parsed.toISOString();
   }
 
-  const updated = updateConsultationCallAt(
+  const updated = await updateConsultationCallAt(
     consultationId,
     consultationAt,
     await currentActorName()
@@ -211,10 +219,11 @@ export async function markLeadBookedToday(
   _prev: ActionState,
   formData: FormData
 ): Promise<ActionState> {
+  await loadWorkspace();
   const consultationId = String(formData.get('consultationId') ?? '');
   if (!consultationId) return { error: 'Missing lead reference.' };
 
-  const updated = updateConsultationCallAt(
+  const updated = await updateConsultationCallAt(
     consultationId,
     new Date().toISOString(),
     await currentActorName()
@@ -251,10 +260,11 @@ export async function sendSurveyLink(
   _prev: ActionState,
   formData: FormData
 ): Promise<ActionState> {
+  await loadWorkspace();
   const companyId = String(formData.get('companyId') ?? '');
   if (!companyId) return { error: 'Missing company reference.' };
 
-  const survey = markSurveySent(companyId, await currentActorName());
+  const survey = await markSurveySent(companyId, await currentActorName());
   if (!survey) return { error: 'No survey exists for this company yet.' };
 
   revalidatePath(`/admin/companies/${companyId}`);
@@ -272,6 +282,7 @@ export async function logConsultantCall(
   _prev: ActionState,
   formData: FormData
 ): Promise<ActionState> {
+  await loadWorkspace();
   const companyId = String(formData.get('companyId') ?? '');
   const consultant = String(formData.get('consultant') ?? '').trim();
   const status = String(formData.get('status') ?? '');
@@ -301,7 +312,7 @@ export async function logConsultantCall(
     scheduledFor = parsed.toISOString();
   }
 
-  const call = recordConsultantCall(
+  const call = await recordConsultantCall(
     companyId,
     {
       consultant,
@@ -326,6 +337,7 @@ export async function reviewReportAction(
   _prev: ActionState,
   formData: FormData
 ): Promise<ActionState> {
+  await loadWorkspace();
   const reportId = String(formData.get('reportId') ?? '');
   const consultantNotes = String(formData.get('consultantNotes') ?? '').trim();
 
@@ -335,7 +347,7 @@ export async function reviewReportAction(
   }
   if (consultantNotes.length > 4000) return { error: 'Notes are limited to 4000 characters.' };
 
-  const report = reviewReport(reportId, consultantNotes, await currentActorName());
+  const report = await reviewReport(reportId, consultantNotes, await currentActorName());
   if (!report) return { error: 'That report no longer exists.' };
 
   revalidatePath(`/admin/reports/${reportId}`);

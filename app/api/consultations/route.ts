@@ -1,7 +1,7 @@
 import nodemailer from 'nodemailer';
 import { NextRequest, NextResponse } from 'next/server';
 import { site } from '@/content/site';
-import { createConsultationRequest, listConsultations } from '@/lib/admin/store';
+import { createConsultationRequest, listConsultations, loadWorkspace } from '@/lib/admin/store';
 import type { Company, ConcernType, ContactMethod, PackageInterest } from '@/lib/admin/types';
 
 type ConsultationSubmission = {
@@ -127,6 +127,9 @@ async function sendInboxEmail(subject: string, text: string): Promise<void> {
 }
 
 export async function POST(request: NextRequest) {
+  // Postgres is the source of truth; nothing renders from memory.
+  await loadWorkspace();
+
   const ip = ipFromRequest(request);
   if (!allowSubmission(ip)) {
     return NextResponse.json({ error: 'Too many attempts. Please try again later.' }, { status: 429 });
@@ -188,7 +191,7 @@ export async function POST(request: NextRequest) {
   }
 
   const challenges = challengesFromMessage(message);
-  const consultation = createConsultationRequest(
+  const consultation = await createConsultationRequest(
     {
       organisationName: organisation,
       organisationType,
