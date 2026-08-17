@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Ample Care">
+  <!--
+    App icon — the Aurora prism.
+
+    A beam enters, and light leaves separated into a spectrum. That is what the
+    interface does and what the business does: one workforce in, the pressure
+    broken into its parts coming out.
+
+    SVG rather than PNG so it stays crisp at every size and costs under 1KB.
+    Next.js emits the <link> tag from app/icon.svg automatically.
+  -->
+  <defs>
+    <linearGradient id="ic-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1b1140"/>
+      <stop offset="55%" stop-color="#0d0a1f"/>
+      <stop offset="100%" stop-color="#050411"/>
+    </linearGradient>
+    <linearGradient id="ic-beam" x1="0" y1="0.5" x2="1" y2="0.5">
+      <stop offset="0%" stop-color="#f4f2ff" stop-opacity="0.1"/>
+      <stop offset="100%" stop-color="#f4f2ff" stop-opacity="0.95"/>
+    </linearGradient>
+    <radialGradient id="ic-glow" cx="0.32" cy="0.42" r="0.6">
+      <stop offset="0%" stop-color="#8257fe" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#8257fe" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="64" height="64" rx="15" fill="url(#ic-bg)"/>
+  <rect width="64" height="64" rx="15" fill="url(#ic-glow)"/>
+
+  <!-- Incoming beam -->
+  <path d="M5 32h13" stroke="url(#ic-beam)" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- Prism -->
+  <path d="M32 14 51 49H13z" fill="#8257fe" fill-opacity="0.22" stroke="#bfb0ff" stroke-width="2.6" stroke-linejoin="round"/>
+
+  <!-- Refracted spectrum -->
+  <path d="M40 27 60 20" stroke="#6fe9c1" stroke-width="3" stroke-linecap="round"/>
+  <path d="M43 34 61 33" stroke="#bfb0ff" stroke-width="3" stroke-linecap="round" opacity="0.9"/>
+  <path d="M45 41 59 46" stroke="#2fd6a3" stroke-width="3" stroke-linecap="round" opacity="0.75"/>
+</svg>

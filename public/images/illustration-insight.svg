@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="800" height="600" role="img" aria-label="Abstract illustration of wellbeing measurement turning into an improvement trend">
+  <defs>
+    <linearGradient id="ins-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#035f4a"/>
+      <stop offset="60%" stop-color="#044E3E"/>
+      <stop offset="100%" stop-color="#050411"/>
+    </linearGradient>
+    <linearGradient id="ins-bar" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#02a074"/>
+      <stop offset="100%" stop-color="#6fe9c1"/>
+    </linearGradient>
+    <linearGradient id="ins-sweep" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0%" stop-color="#bfb0ff" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#bfb0ff" stop-opacity="0.75"/>
+    </linearGradient>
+    <radialGradient id="ins-glow" cx="0.72" cy="0.2" r="0.7">
+      <stop offset="0%" stop-color="#6fe9c1" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#6fe9c1" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="800" height="600" fill="url(#ins-bg)"/>
+  <rect width="800" height="600" fill="url(#ins-glow)"/>
+
+  <!-- Baseline grid -->
+  <g stroke="#ffffff" stroke-opacity="0.1" stroke-width="1.5">
+    <line x1="110" y1="150" x2="700" y2="150"/>
+    <line x1="110" y1="250" x2="700" y2="250"/>
+    <line x1="110" y1="350" x2="700" y2="350"/>
+    <line x1="110" y1="450" x2="700" y2="450"/>
+  </g>
+
+  <!-- Measured bars: low to high, the movement the report is meant to prove. -->
+  <g fill="url(#ins-bar)">
+    <rect x="132" y="392" width="58" height="108" rx="12"/>
+    <rect x="222" y="340" width="58" height="160" rx="12"/>
+    <rect x="312" y="356" width="58" height="144" rx="12"/>
+    <rect x="402" y="268" width="58" height="232" rx="12"/>
+    <rect x="492" y="212" width="58" height="288" rx="12"/>
+    <rect x="582" y="144" width="58" height="356" rx="12"/>
+  </g>
+
+  <!-- Trend sweep -->
+  <path d="M161 404 C 280 372 330 300 431 276 C 520 254 570 190 611 156"
+        fill="none" stroke="url(#ins-sweep)" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="611" cy="156" r="15" fill="#dad2ff"/>
+  <circle cx="611" cy="156" r="27" fill="none" stroke="#dad2ff" stroke-opacity="0.4" stroke-width="3"/>
+
+  <rect x="110" y="498" width="590" height="3" rx="1.5" fill="#ffffff" fill-opacity="0.28"/>
+
+  <circle cx="700" cy="470" r="52" fill="#240f5c" fill-opacity="0.5"/>
+</svg>
