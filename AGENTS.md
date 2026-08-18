@@ -12,3 +12,16 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+## Deployment
+
+Hosted on Vercel under the `amplecare` team, project `wellnessweb`, connected to
+`amplecare/wellnessweb` on GitHub. Pushing to `main` deploys to production.
+
+Environment variables live in Vercel project settings, not in the repo. Set them
+through the dashboard or the REST API — piping a value into `vercel env add` can
+store an empty string while still reporting success, which silently breaks the
+build with a "DATABASE_URL is not set" error at runtime.
+
+Run `npm run migrate` to apply database migrations. They are append-only: add a new
+numbered file in `supabase/migrations/` rather than editing an existing one.
