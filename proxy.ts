@@ -4,6 +4,9 @@ import { SESSION_COOKIE, verifySessionToken } from '@/lib/auth/session';
 /**
  * Route guard for the admin area.
  *
+ * Named `proxy` in `proxy.ts`: Next 16 renamed the middleware file convention.
+ * The behaviour is unchanged — it still runs before any admin page renders.
+ *
  * Runs before any admin page renders, so an unauthenticated request never reaches the
  * dashboard code or its data. This is the enforcement point — do not rely on hiding
  * links in the UI, which stops nobody who can type a URL.
@@ -11,7 +14,7 @@ import { SESSION_COOKIE, verifySessionToken } from '@/lib/auth/session';
  * Uses Web Crypto (see lib/auth/session.ts) because middleware runs on the Edge
  * runtime where node:crypto does not exist.
  */
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
 
   const session = await verifySessionToken(request.cookies.get(SESSION_COOKIE)?.value);
