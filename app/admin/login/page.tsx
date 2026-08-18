@@ -3,6 +3,17 @@ import { Icon } from '@/components/Icons';
 import { Container, Section } from '@/components/ui/Section';
 import { LoginForm } from './LoginForm';
 
+/**
+ * Rendered per request, never prerendered.
+ *
+ * This page is behind authentication and reads live data, so a build-time snapshot
+ * would be both wrong and impossible — the build has no signed-in user. Next 16
+ * tries to prerender it by default, which fails on the database connection. Locally
+ * that was hidden because .env.local supplied DATABASE_URL and the build happily
+ * baked a page nobody should ever be served.
+ */
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Admin sign in',
   // Never let the login page into an index — it is not a public page.

@@ -31,6 +31,17 @@ import { listActivity, loadWorkspace } from '@/lib/admin/store';
 import { companyTone, urgencyTone } from '@/lib/admin/tone';
 import { readCompany, readRole } from '@/lib/admin/query';
 
+/**
+ * Rendered per request, never prerendered.
+ *
+ * This page is behind authentication and reads live data, so a build-time snapshot
+ * would be both wrong and impossible — the build has no signed-in user. Next 16
+ * tries to prerender it by default, which fails on the database connection. Locally
+ * that was hidden because .env.local supplied DATABASE_URL and the build happily
+ * baked a page nobody should ever be served.
+ */
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Admin Dashboard',
   description: 'Internal multi-tenant wellbeing CRM dashboard for Ample Care administrators.',

@@ -4,6 +4,17 @@ import { site } from '@/content/site';
 import { createConsultationRequest, listConsultations, loadWorkspace } from '@/lib/admin/store';
 import type { Company, ConcernType, ContactMethod, PackageInterest } from '@/lib/admin/types';
 
+/**
+ * Rendered per request, never prerendered.
+ *
+ * This page is behind authentication and reads live data, so a build-time snapshot
+ * would be both wrong and impossible — the build has no signed-in user. Next 16
+ * tries to prerender it by default, which fails on the database connection. Locally
+ * that was hidden because .env.local supplied DATABASE_URL and the build happily
+ * baked a page nobody should ever be served.
+ */
+export const dynamic = 'force-dynamic';
+
 type ConsultationSubmission = {
   name?: string;
   organisation?: string;
@@ -42,7 +53,12 @@ function allowSubmission(ip: string): boolean {
 }
 
 function normaliseType(value: unknown): Company['type'] | undefined {
-  if (value === 'care_home' || value === 'domiciliary' || value === 'supported_living' || value === 'nursing_home') {
+  if (
+    value === 'care_home' ||
+    value === 'domiciliary' ||
+    value === 'supported_living' ||
+    value === 'nursing_home'
+  ) {
     return value;
   }
   return undefined;
@@ -57,13 +73,17 @@ function challengesFromMessage(message: string): ConcernType[] {
   const text = message.toLowerCase();
   const matches: ConcernType[] = [];
 
-  if (text.includes('burnout') || text.includes('fatigue') || text.includes('exhaust')) matches.push('burnout');
-  if (text.includes('absence') || text.includes('sickness') || text.includes('leave')) matches.push('absence');
+  if (text.includes('burnout') || text.includes('fatigue') || text.includes('exhaust'))
+    matches.push('burnout');
+  if (text.includes('absence') || text.includes('sickness') || text.includes('leave'))
+    matches.push('absence');
   if (text.includes('stress') || text.includes('pressure')) matches.push('stress');
-  if (text.includes('engagement') || text.includes('communication') || text.includes('feedback')) matches.push('engagement');
+  if (text.includes('engagement') || text.includes('communication') || text.includes('feedback'))
+    matches.push('engagement');
   if (text.includes('conflict')) matches.push('conflict');
   if (text.includes('mental')) matches.push('mental_health');
-  if (text.includes('workload') || text.includes('rota') || text.includes('shift')) matches.push('workload');
+  if (text.includes('workload') || text.includes('rota') || text.includes('shift'))
+    matches.push('workload');
 
   return [...new Set(matches)];
 }
@@ -132,7 +152,10 @@ export async function POST(request: NextRequest) {
 
   const ip = ipFromRequest(request);
   if (!allowSubmission(ip)) {
-    return NextResponse.json({ error: 'Too many attempts. Please try again later.' }, { status: 429 });
+    return NextResponse.json(
+      { error: 'Too many attempts. Please try again later.' },
+      { status: 429 }
+    );
   }
 
   let payload: ConsultationSubmission;
@@ -164,7 +187,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Please enter a valid staff count.' }, { status: 400 });
   }
   if (!email && !phone) {
-    return NextResponse.json({ error: 'Please provide either an email address or a phone number.' }, { status: 400 });
+    return NextResponse.json(
+      { error: 'Please provide either an email address or a phone number.' },
+      { status: 400 }
+    );
   }
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
     return NextResponse.json({ error: 'Please check the email address.' }, { status: 400 });
