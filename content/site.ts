@@ -5,13 +5,39 @@
  * be replaced with real Ample Care Ltd details before launch — see PLACEHOLDERS.md.
  */
 
+/**
+ * The canonical origin for this deployment.
+ *
+ * Resolution order, and why:
+ *
+ * 1. `NEXT_PUBLIC_SITE_URL` — set this once a real domain is registered. It wins over
+ *    everything, so the same build serves correct canonicals from any host.
+ * 2. `VERCEL_PROJECT_PRODUCTION_URL` — the project's stable production hostname on
+ *    Vercel. Correct while the site lives on a *.vercel.app address.
+ * 3. The placeholder domain — the last resort, and wrong until that domain is live.
+ *
+ * This matters more than it looks. Canonicals, Open Graph URLs, the sitemap and every
+ * schema.org `@id` are built from it. Hard-coding a domain that does not yet serve the
+ * site means Google crawls the live pages and finds each one pointing somewhere else —
+ * so the real pages get dropped rather than indexed.
+ */
+function resolveSiteUrl(): string {
+  const explicit = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  if (explicit) return explicit.replace(/\/$/, '');
+
+  const vercelHost = process.env.VERCEL_PROJECT_PRODUCTION_URL?.trim();
+  if (vercelHost) return `https://${vercelHost}`;
+
+  return 'https://www.amplecare.co.uk';
+}
+
 export const site = {
   name: 'Ample Care Ltd',
   shortName: 'Ample Care',
   tagline: 'Health Promotion & Workplace Wellbeing Consultancy',
 
-  // PLACEHOLDER: replace with the real production domain once registered.
-  url: 'https://www.amplecare.co.uk',
+  // Resolved per deployment. Set NEXT_PUBLIC_SITE_URL once the real domain is live.
+  url: resolveSiteUrl(),
 
   description:
     'Ample Care helps UK care providers assess, improve and maintain staff wellbeing through practical health promotion and workplace wellbeing programmes — built for the realities of care work.',
