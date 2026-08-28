@@ -83,9 +83,15 @@ Also outstanding for the dashboard:
 The site now has 15 SEO landing pages, 8 service pages and a resources hub. Two things
 must be resolved before anything is crawled:
 
-- **`content/site.ts` placeholders.** The production domain drives every canonical, all
-  Open Graph URLs, the sitemap and every `@id` in the structured data. Crawling before
-  it is correct means re-indexing the whole site later.
+- **The production domain.** `site.url` now resolves `NEXT_PUBLIC_SITE_URL` first, then
+  the Vercel production hostname, then the placeholder — so canonicals are correct on
+  whatever host the site is served from. `NEXT_PUBLIC_SITE_URL` is currently set to the
+  Vercel address. **Update it in Vercel the moment a real domain goes live**, or every
+  canonical, Open Graph URL, sitemap entry and schema `@id` will keep pointing at the
+  vercel.app address.
+- **The remaining `content/site.ts` placeholders still block launch**: company number
+  `00000000`, the `SW1A 1AA` registered office, and `hello@amplecare.co.uk`. UK limited
+  companies must show a real registered office and company number.
 - **Analytics is not configured.** `NEXT_PUBLIC_ANALYTICS_URL` is unset, so no
   conversion data is being collected. Use a **cookieless** provider (Plausible, Fathom).
   Anything setting cookies or fingerprinting — Google Analytics does both — requires a
