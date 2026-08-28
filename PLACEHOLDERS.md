@@ -20,11 +20,15 @@ Legend: 🔴 blocks launch · 🟠 should be done before launch · 🟢 nice to 
 
 ## 🔴 1b. Admin credentials must be set on the deployment
 
-`/admin` is protected by a signed-session login (`middleware.ts` + `lib/auth/`). It reads
+`/admin` is protected by a signed-session login (`proxy.ts` + `lib/auth/`). It reads
 three variables from `.env.local`, which is git-ignored and therefore **will not travel to
-your host**. Set all three in the hosting provider's environment settings (Vercel →
-Project → Settings → Environment Variables, or equivalent) or the admin area will refuse
-every login attempt.
+your host**. These are already set on Vercel for this project.
+
+A warning worth keeping: piping a value into `vercel env add` can store an **empty
+string** while still reporting success. All seven variables were silently empty on the
+first deploy, which produced a runtime "DATABASE_URL is not set" error even though the
+dashboard listed them as Encrypted. Always pull them back (`vercel env pull`) and check
+the lengths.
 
 | Variable | What it is |
 |---|---|
@@ -48,35 +52,37 @@ Known limits of this design, in case the admin area grows:
   serverless host each instance counts separately, which weakens it. Move to shared storage
   if you deploy serverless.
 - **No 2FA and no password reset flow.** Resetting means changing the env var.
-- The dashboard currently reads from `content/admin/mockData` — the login protects the
-  route, but there is no real staff data behind it yet.
+- The dashboard now reads from Postgres (see §1c). The login protects the route; there
+  is simply no real client data in it yet.
 
-## 🔴 1c. Admin dashboard writes to memory, not a database
+## ✅ 1c. Dashboard data — resolved
 
-The CRM is functional — statuses change, cases reassign, notes save, leads move stage,
-and every one of those writes an audit entry. But all of it lives in
-`lib/admin/store.ts`, which holds state on `globalThis`.
+The dashboard runs on Postgres (Supabase). Applied by `npm run migrate` from
+`supabase/migrations/`, which is append-only: add a new numbered file rather than
+editing an existing one.
 
-Two consequences that matter before anyone relies on this:
+- **13 tables, 14 enums, RLS enabled and forced on every one** with no permissive
+  policy, so the anon key can read nothing. All access is server-side over the pooler
+  connection, which bypasses RLS — meaning **authorisation is the application's job**.
+  Any future per-client login must add RLS policies in a migration rather than relying
+  on query filters.
+- `survey_response` deliberately stores **no answers**, only whether someone responded
+  and when. Staff will not answer honestly otherwise, and the privacy policy commits to
+  aggregate-only reporting. Do not "improve" this by adding a responses column.
+- The invented sample data (`mockData.ts`, `pipelineData.ts`, `surveyData.ts`) has been
+  **deleted**. The dashboard starts empty and fills with real submissions.
+- Verified: a consultation submitted through the production form survives a full server
+  restart and cache wipe.
 
-- **Everything resets when the server restarts.** A note written on Tuesday is gone
-  after a deploy.
-- **It is per-process.** On a serverless host, two instances hold divergent copies.
+Still outstanding for the dashboard:
 
-`store.ts` is the only module that touches data, and every page reads through
-`lib/admin/insights.ts`. Replacing the seed arrays with real queries is a change to
-those two files — no page needs to change. Do that before any real staff wellbeing
-data is entered.
-
-Also outstanding for the dashboard:
-
-- **Role comes from the signed-in account, not the URL.** Admin access is fixed to the
-  internal account and company scoping is applied only from the company query, never from a
-  fake role switcher.
-- **Sample data is invented.** `content/admin/mockData.ts` and
-  `content/admin/pipelineData.ts` describe no real client or lead. Lead email addresses
-  use the reserved `.example` domain so nothing can reach a real inbox. Delete both
-  files when a backend arrives rather than editing them.
+- **Role is hard-coded to `admin`.** `readRole()` in `lib/admin/query.ts` ignores the URL
+  entirely, which correctly killed the old `?role=` switcher. The consequence is that all
+  the multi-tenant scoping code — `company_user` restrictions, tenant isolation, hiding
+  the pipeline from clients — **exists but never executes**. Before any care provider is
+  given a login, that needs a real user table and RLS policies.
+- **Login rate limiting is in-memory**, so on serverless it is per-instance. Move to
+  shared storage if that matters.
 
 ## 🔴 1d. SEO build — launch blockers
 
